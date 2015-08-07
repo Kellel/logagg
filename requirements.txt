@@ -1,0 +1,4 @@
+argparse==1.2.1
+pyzmq==14.7.0
+wsgiref==0.1.2
+zmq==0.0.0
