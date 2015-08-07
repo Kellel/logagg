@@ -35,14 +35,15 @@ class LogWorker(object):
             log.debug("WORK: %s", str(work))
 
             application = work['app']
-            log.info("JOB [FOR: {}] {}".format(application, work['msg']))
+            msg = work['msg'].strip()
+            log.info("JOB [FOR: {}] {}".format(application, msg))
 
-            if not application in self.files:
+            if not application in self.files or self.files[application].closed:
                 log.info("OPENING: %s", application)
                 self.files[application] = open(os.path.join(LOG_FILE_PATH, application), 'a')
 
             log.debug("Writing line to file")
-            self.files[application].write(work['msg'] + "\n")
+            self.files[application].write(msg + "\n")
 
             log.debug("Relaying MSG")
             sender.send_json(work)
