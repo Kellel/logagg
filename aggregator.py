@@ -8,7 +8,7 @@ from zmq.devices.basedevice import ProcessDevice
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 log = logging.getLogger('logger')
 
-LOG_FILE_PATH = "/var/log/logagg"
+LOG_FILE_PATH = "./log"
 HWM = 50
 
 class LogWorker(object):
@@ -44,6 +44,7 @@ class LogWorker(object):
 
             log.debug("Writing line to file")
             self.files[application].write(msg + "\n")
+            self.files[application].flush()
 
             log.debug("Relaying MSG")
             sender.send_json(work)
