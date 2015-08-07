@@ -8,7 +8,7 @@ from zmq.devices.basedevice import ProcessDevice
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 log = logging.getLogger('logger')
 
-LOG_FILE_PATH = "./log"
+LOG_FILE_PATH = "/var/log/logagg"
 HWM = 50
 
 class LogWorker(object):
