@@ -24,7 +24,7 @@ class LogWorker(object):
 
         receiver = context.socket(zmq.PULL)
         receiver.set_hwm(HWM)
-        receiver.bind("tcp://127.0.0.1:7770")
+        receiver.bind("tcp://0.0.0.0:7770")
 
         sender = context.socket(zmq.PUSH)
         sender.set_hwm(HWM)
