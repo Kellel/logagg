@@ -28,7 +28,7 @@ from message import ZMQPushSocket,ZMQPullSocket
 logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 log = logging.getLogger('logger')
 
-LOG_FILE_PATH = "./tmp"
+LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "tmp")
 HWM = 1000
 
 class LogWorker(object):
