@@ -1,24 +1,38 @@
+import argparse
 import fileinput
 import zmq
 import sys
 import logging
 
+from message import ZMQPushSocket
+
 log = logging.getLogger(__name__)
-logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-ctx = zmq.Context()
-sock = ctx.socket(zmq.PUSH)
-sock.connect("tcp://127.0.0.1:7770")
-sock.set_hwm(50)
+def client(infile, name="cli-client"):
 
-log.info("STARTUP")
+    with ZMQPushSocket("tcp://127.0.0.1:7770") as sock:
 
-for line in fileinput.input():
-    message = {"app": "cli-client", "msg": line}
-    log.debug(message)
-    sock.send_json(message)
-    log.debug("SENT")
+        sock.set_hwm(50)
 
-# FORCE TO EXIT IF THE CONNECTION IS FAIL
-ctx.destroy(linger=1000)
-log.info("SHUTDOWN")
+        log.info("STARTUP")
+
+        for line in infile:
+            message = {"app": name, "msg": line}
+            log.debug(message)
+            sock.send_json(message)
+            log.debug("SENT")
+
+        log.info("SHUTDOWN")
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--name")
+    parser.add_argument('infile', type=argparse.FileType('r'), default=sys.stdin)
+    args = parser.parse_args()
+
+    if args.name:
+        client(infile=args.infile, name=args.name)
+    else:
+        client(infile=args.infile)
+
+    logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
