@@ -25,13 +25,14 @@ import collections
 
 from message import ZMQPushSocket,ZMQPullSocket
 
-logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "tmp")
+DAEMON_LOG_FILE = os.path.join(LOG_FILE_PATH, "logger-daemon.log")
+logging.basicConfig(filename=DAEMON_LOG_FILE, level=logging.DEBUG)
 log = logging.getLogger('logger')
 
-LOG_FILE_PATH = os.path.join(os.path.dirname(__file__), "tmp")
 HWM = 1000
 
-class LogWorker(object):
+class LogAggregator(object):
     def __init__(self):
         log.debug("Checking for LOG_FILE_PATH at %s", LOG_FILE_PATH)
         if not os.path.exists(LOG_FILE_PATH):
@@ -45,13 +46,15 @@ class LogWorker(object):
         context = zmq.Context()
 
         # Bind sockets
+        # Using a context manager ensures that we will always close the sockets
+        # I think it's also more '`pythonic`' or whatever
         with ZMQPullSocket("tcp://0.0.0.0:7770", context, bind=True) as receiver:
             with ZMQPushSocket("tcp://127.0.0.1:7777", context) as sender:
 
                 receiver.set_hwm(HWM)
                 sender.set_hwm(HWM)
 
-                # Get a json object from the uwsgi instances
+                # Get a json object from the backend instances
                 for item in receiver:
                     self.work(item, sender)
 
@@ -61,7 +64,7 @@ class LogWorker(object):
 
         application = message['app']
         if application == None:
-            return
+            application = "UNKNOWN-SENDER"
 
         msg = message['msg'].strip()
         log.info("JOB [FOR: {}] {}".format(application, msg))
@@ -75,7 +78,7 @@ class LogWorker(object):
         self.files[application].flush()
 
         log.debug("Relaying MSG")
-        sender.send_json({"app": application, "msg": msg})
+        sender.send_json({"app-name": application, "msg": msg})
         log.debug("JOB Complete.")
         self.stats["total"] += 1
         self.stats[application] += 1
@@ -104,8 +107,10 @@ class LogWorker(object):
 
 
 if __name__ == "__main__":
-    with LogWorker() as logger:
+    with LogAggregator() as logger:
         try:
             logger.run()
         except KeyboardInterrupt:
             pass
+
+    logging.shutdown()

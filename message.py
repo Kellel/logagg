@@ -42,3 +42,27 @@ class ZMQSocketReader(object):
 
     def set_hwm(self, hwm):
         self.socket.set_hwm(hwm)
+
+class FileInput(object):
+    def __init__(self, file):
+        self.file = file
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.file.close()
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        line = self.file.readline()
+
+        if line == None:
+            raise StopIteration
+
+        return line
+
+
+
