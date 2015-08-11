@@ -1,0 +1,9 @@
+#!/usr/local/bin/env python
+from logagg.aggregator import LogAggregator
+
+with LogAggregator() as logger:
+    try:
+        logger.run()
+    except KeyboardInterrupt:
+        pass
+

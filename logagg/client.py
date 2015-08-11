@@ -19,21 +19,13 @@ def client(infile, name="cli-client"):
 
         log.debug(infile)
 
-        with
-        while True:
-            try:
-                line = infile.readline()
-            except KeyboardInterrupt:
-                break
-
-            if not line:
-                break
-
-            log.debug(line)
-            message = {"app": name, "msg": line}
-            log.debug(message)
-            sock.send_json(message)
-            log.debug("SENT")
+        with FileInput(infile) as f:
+            for line in f:
+                log.debug(line)
+                message = {"app": name, "msg": line}
+                log.debug(message)
+                sock.send_json(message)
+                log.debug("SENT")
 
         log.info("SHUTDOWN")
         infile.close()
@@ -46,8 +38,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
     logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-    if args.name:
-        client(infile=args.infile, name=args.name)
-    else:
-        client(infile=args.infile)
+    try:
+        if args.name:
+            client(infile=args.infile, name=args.name)
+        else:
+            client(infile=args.infile)
+    except KeyboardInterrupt:
+        pass
 
